@@ -1,8 +1,9 @@
+
 # 🧠 ModularAI: Custom AI Modules with REST API & Web Crawling
 
-> 🚀 Build, connect, and deploy custom AI modules like microservices — powered by PyTorch, FastAPI, and web crawling capabilities.
+![AI Network Image](./assets/banner.png)
 
----
+> 🚀 Build, connect, and deploy custom AI modules like microservices — powered by PyTorch, FastAPI, and web crawling capabilities.
 
 ## 📌 Project Overview
 
