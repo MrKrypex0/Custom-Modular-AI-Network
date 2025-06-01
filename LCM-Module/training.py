@@ -24,17 +24,21 @@ class Autoencoder(nn.Module):
 
     def forward(self, x):
         latent = self.encoder(x)
-        reconstructed = self.decoder(latent)    
+        reconstructed = self.decoder(latent)
         return reconstructed, latent
 
 # Example usage:
-input_dim = 784  # For MNIST dtaaset (28x28 images flattened)
+input_dim = 784  # For MNIST dataset (28x28 images flattened)
 latent_dim = 32
 
 model = Autoencoder(input_dim, latent_dim)
 
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# Check if CUDA is available and move model to GPU
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
 # Training Loop
 def train_autoencoder(model, dataLoader, epochs):
@@ -45,7 +49,10 @@ def train_autoencoder(model, dataLoader, epochs):
             # Flatten the images
             img = img.view(img.size(0), -1)
 
-            # Foward pass 
+            # Move data to GPU if available
+            img = img.to(device)
+
+            # Forward pass
             reconstructed, latent = model(img)
             loss = criterion(reconstructed, img)
 
@@ -56,7 +63,6 @@ def train_autoencoder(model, dataLoader, epochs):
 
             # Print loss
             print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}")
-
 
 from torchvision import datasets, transforms
 
@@ -76,6 +82,8 @@ def visualize_reconstruction(model, data):
     with torch.no_grad():
         img, _ = data
         img = img.view(img.size(0), -1)
+        # Move data to GPU if available
+        img = img.to(device)
         reconstructed, _ = model(img)
 
         # Plot original and reconstructed images
