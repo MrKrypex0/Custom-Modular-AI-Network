@@ -1,0 +1,39 @@
+name: Require Owner Approval
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  require-owner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR info
+        id: pr
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput('author', data.user.login);
+            core.setOutput('approved_by', data.review_comments.map(comment => comment.user.login).filter(user => user !== data.user.login));
+
+      - name: Fail if not approved by owner
+        if: |
+          steps.pr.outputs.author != 'MrKrypex0' && 
+          !contains(steps.pr.outputs.approved_by, 'MrKrypex0')
+        run: |
+          echo "❌ PR has not been approved by the repo owner."
+          exit 1
+
+      - name: Allow owner to self-approve
+        if: |
+          steps.pr.outputs.author == 'MrKrypex0' && 
+          contains(steps.pr.outputs.approved_by, 'MrKrypex0')
+        run: |
+          echo "✅ This PR was created and approved by the owner. Merging is allowed."
