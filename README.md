@@ -1,3 +1,4 @@
+Note: This README is a template is not customized for this project and will be modified in the future.
 
 # 🧠 ModularAI: Custom AI Modules with REST API & Web Crawling
 
