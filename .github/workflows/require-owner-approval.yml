@@ -1,0 +1,22 @@
+name: Require Owner Approval
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  require-owner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR info
+        id: pr
+        uses: tibdex/github-action-get-pr@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if not approved by owner
+        if: contains(steps.pr.outputs.approved_by, 'MrKrypex0') == false
+        run: |
+          echo "❌ PR has not been approved by the repo owner."
+          exit 1
