@@ -8,6 +8,7 @@ on:
 jobs:
   require-owner:
     runs-on: ubuntu-latest
+
     steps:
       - name: Get PR info
         id: pr
@@ -15,18 +16,29 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data } = await github.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
             });
 
-            const approvals = data.reviews
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const approvals = reviews.data
               .filter(review => review.state === 'APPROVED')
               .map(review => review.user.login);
 
-            core.setOutput('author', data.user.login);
+            core.setOutput('author', pr.data.user.login);
             core.setOutput('approved_by', approvals.join(','));
+
+      - name: Debug outputs
+        run: |
+          echo "📝 PR Author: ${{ steps.pr.outputs.author }}"
+          echo "✅ Approved by: ${{ steps.pr.outputs.approved_by }}"
 
       - name: Fail if not approved by owner
         if: |
