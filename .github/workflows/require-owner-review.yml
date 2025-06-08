@@ -1,4 +1,4 @@
-name: Require External Review for Contributors
+name: Require Owner Approval
 
 on:
   pull_request:
@@ -6,37 +6,34 @@ on:
       - main
 
 jobs:
-  enforce-review-policy:
+  require-owner:
     runs-on: ubuntu-latest
     steps:
       - name: Get PR info
         id: pr
-        uses: tibdex/github-action-get-pr@v1
+        uses: actions/github-script@v6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput('author', data.user.login);
+            core.setOutput('approved_by', data.review_comments.map(comment => comment.user.login).filter(user => user !== data.user.login));
 
-      - name: Extract author and reviewers
-        id: extract
-        run: |
-          echo "PR Author: ${{ steps.pr.outputs.author }}"
-          echo "Approved by: ${{ steps.pr.outputs.approved_by }}"
-          echo "PR Number: ${{ github.event.pull_request.number }}"
-
-          echo "::set-output name=author::${{ steps.pr.outputs.author }}"
-          echo "::set-output name=approved_by::${{ steps.pr.outputs.approved_by }}"
-
-      - name: Fail if contributor approves own PR
+      - name: Fail if not approved by owner
         if: |
-          steps.extract.outputs.author != 'MrKrypex0' && 
-          !contains(steps.extract.outputs.approved_by, 'MrKrypex0')
+          steps.pr.outputs.author != 'MrKrypex0' && 
+          !contains(steps.pr.outputs.approved_by, 'MrKrypex0')
         run: |
-          echo "❌ This PR was created by a contributor and has not been approved by MrKrypex0."
-          echo "Please wait for manual review before merging."
+          echo "❌ PR has not been approved by the repo owner."
           exit 1
 
       - name: Allow owner to self-approve
         if: |
-          steps.extract.outputs.author == 'MrKrypex0' && 
-          contains(steps.extract.outputs.approved_by, 'MrKrypex0')
+          steps.pr.outputs.author == 'MrKrypex0' && 
+          contains(steps.pr.outputs.approved_by, 'MrKrypex0')
         run: |
           echo "✅ This PR was created and approved by the owner. Merging is allowed."
