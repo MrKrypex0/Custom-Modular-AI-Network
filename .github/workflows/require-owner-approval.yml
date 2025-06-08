@@ -11,12 +11,34 @@ jobs:
     steps:
       - name: Get PR info
         id: pr
-        uses: tibdex/github-action-get-pr@v1
+        uses: actions/github-script@v6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const approvals = data.reviews
+              .filter(review => review.state === 'APPROVED')
+              .map(review => review.user.login);
+
+            core.setOutput('author', data.user.login);
+            core.setOutput('approved_by', approvals.join(','));
 
       - name: Fail if not approved by owner
-        if: contains(steps.pr.outputs.approved_by, 'MrKrypex0') == false
+        if: |
+          steps.pr.outputs.author != 'MrKrypex0' && 
+          !contains(steps.pr.outputs.approved_by, 'MrKrypex0')
         run: |
           echo "❌ PR has not been approved by the repo owner."
           exit 1
+
+      - name: Allow owner to self-approve
+        if: |
+          steps.pr.outputs.author == 'MrKrypex0' && 
+          contains(steps.pr.outputs.approved_by, 'MrKrypex0')
+        run: |
+          echo "✅ This PR was created and approved by the owner. Merging is allowed."
