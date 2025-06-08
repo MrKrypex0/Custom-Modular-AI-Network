@@ -1,4 +1,4 @@
-name: Block Unauthorized Pushes to main
+name: Block Unauthorized Direct Pushes to main
 
 on:
   push:
@@ -9,13 +9,9 @@ jobs:
   check-author:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Get git author
         id: get-author
         run: |
-          # Get the author of the last commit
           AUTHOR=$(git log -1 --pretty=%an)
           echo "Author: $AUTHOR"
           echo "AUTHOR=$AUTHOR" >> $GITHUB_ENV
@@ -24,5 +20,4 @@ jobs:
         if: env.AUTHOR != 'MrKrypex0'
         run: |
           echo "❌ ERROR: Only the repo owner is allowed to push directly to main."
-          echo "Detected author: $AUTHOR"
           exit 1
