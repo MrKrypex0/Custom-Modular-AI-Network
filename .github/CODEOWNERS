@@ -1,0 +1,10 @@
+# CODEOWNERS file - only the repo owner can approve changes
+
+# Require @MrKrypex0 to approve all changes
+*       @MrKrypex0
+
+# Or if you want to protect only specific files:
+# /.env             @MrKrypex0
+# /package.json     @MrKrypex0
+# /Dockerfile       @MrKrypex0
+# /src              @MrKrypex0
