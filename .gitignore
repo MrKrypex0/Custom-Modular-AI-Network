@@ -2,6 +2,6 @@
 data/
 results/
 archive/
-
+.env
 # Python cache files
 __pycache__/
