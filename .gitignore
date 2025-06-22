@@ -2,3 +2,6 @@
 data/
 results/
 archive/
+
+# Python cache files
+__pycache__/
